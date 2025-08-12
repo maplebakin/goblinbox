@@ -1,0 +1,401 @@
+/* Base container */
+.goblinbox-container {
+  padding: 2rem;
+  max-width: 768px;
+  margin: auto;
+  background: #2b3d2f;
+  border: 2px solid #947c58;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  color: #f4eada;
+}
+
+/* Header */
+header h1 {
+  font-size: 3rem;
+  margin-bottom: 0;
+  color: #f7e6c4;
+}
+.subtitle { font-style: italic; margin-top: 0; }
+.cta {
+  background: #d9c082;
+  color: #2b3d2f;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  margin: 1rem 0;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: inherit;
+}
+.question { font-size: 1.2rem; opacity: 0.8; }
+
+/* Topbar + dropdown */
+.topbar { display: flex; justify-content: flex-end; margin-top: 0.75rem; }
+.pill {
+  background: #2f3a2b;
+  color: #f4eada;
+  border: 1px solid #4a4a3a;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pill:hover { filter: brightness(1.1); }
+
+.scrim {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 40;
+}
+.dropdown-panel {
+  position: fixed;
+  top: 84px;
+  right: 24px;
+  width: min(720px, 92vw);
+  max-height: 70vh;
+  overflow: auto;
+  background: #343a2a;
+  border: 1px solid #565646;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+  z-index: 50;
+  padding: 0.75rem;
+}
+
+/* Hoard status */
+.hoard-status {
+  background: #3b4e3f;
+  padding: 1rem;
+  margin: 2rem 0;
+  border-radius: 8px;
+}
+
+/* Nests row */
+.nests {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.nest-card {
+  flex: 1 1 30%;
+  min-width: 180px;
+  background: #444;
+  color: #f4eada;
+  text-align: left;
+  padding: 0.9rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-shadow: inset 0 0 10px #222;
+}
+
+/* GoblinInput form */
+.goblin-input {
+  background: #363c2a;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.goblin-input textarea,
+.goblin-input input[type="url"] {
+  width: 100%;
+  padding: 0.5rem;
+  background: #2a2f22;
+  color: #f4eada;
+  border: 1px solid #444;
+  border-radius: 5px;
+  font-family: inherit;
+  resize: vertical;
+}
+.goblin-input button {
+  align-self: flex-start;
+  background: #947c58;
+  color: #fffef7;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.goblin-input button:hover { background: #bca275; }
+
+/* Goblin cards */
+.hoard-list { margin-top: 1rem; }
+.goblin-card {
+  background: #3a3a2f;
+  border-left: 5px solid #947c58;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  font-style: italic;
+}
+.card-top {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+.mood-badge {
+  background: #2a2f22;
+  border: 1px solid #454535;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.85rem;
+}
+.card-date { font-size: 0.8rem; opacity: 0.6; }
+.card-link { margin-top: 0.5rem; font-size: 0.9rem; color: #d3c7a0; }
+.card-link a { color: #d9c082; text-decoration: underline; }
+
+/* Nest Manager (inside dropdown) */
+.nest-manager {
+  background: #343a2a;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0;
+}
+.nest-add { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.nest-add input {
+  background: #2a2f22; color: #f4eada; border: 1px solid #444;
+  border-radius: 5px; padding: 0.5rem; font-family: inherit;
+}
+.nest-add button {
+  background: #947c58; color: #fffef7; border: 0;
+  border-radius: 5px; padding: 0.5rem 0.8rem; cursor: pointer;
+}
+.nest-list { display: grid; gap: 0.75rem; }
+.nest-row {
+  background: #3a3f2f;
+  border: 1px solid #4b4b3a;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+.nest-head { display: flex; align-items: center; gap: 0.5rem; }
+.nest-emoji { font-size: 1.2rem; }
+.nest-name { flex: 1; }
+.nest-head .danger {
+  background: #733939; color: #ffe9e9; border: 0;
+  border-radius: 4px; padding: 0.25rem 0.5rem; cursor: pointer;
+}
+.nest-keys { margin: 0.5rem 0; }
+.key-group { margin-bottom: 0.35rem; }
+.key-group em { opacity: 0.8; font-style: italic; margin-right: 0.5rem; }
+
+/* chips */
+.chips {
+  display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.35rem;
+}
+.chip {
+  background: #2a2f22; border: 1px solid #454535; border-radius: 999px;
+  padding: 0.2rem 0.6rem; font-size: 0.85rem;
+}
+.chip.base { opacity: 0.85; }
+.chip.user { background: #30402a; }
+
+/* add keyword row */
+.nest-keyadd { display: flex; gap: 0.5rem; }
+.nest-keyadd input {
+  background: #2a2f22; color: #f4eada; border: 1px solid #444;
+  border-radius: 4px; padding: 0.4rem; flex: 1;
+}
+.nest-keyadd button {
+  background: #6c845d; color: #f4eada; border: 0;
+  border-radius: 4px; padding: 0.4rem 0.8rem; cursor: pointer;
+}
+
+/* Footer */
+footer { text-align: center; font-size: 0.9rem; margin-top: 2rem; opacity: 0.8; }
+/* Input vibe row */
+.vibe-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.auto-hint {
+  background: #2a2f22;
+  border: 1px solid #454535;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.mood-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #2a2f22;
+  border: 1px solid #454535;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+}
+
+.mood-select .label {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.mood-select select {
+  background: transparent;
+  color: #f4eada;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  padding: 0.1rem 0.2rem;
+  cursor: pointer;
+}
+/* Dropzone */
+.dropzone {
+  border: 2px dashed #565646;
+  background: #2a2f22;
+  border-radius: 10px;
+  padding: 0.9rem;
+  text-align: center;
+  cursor: pointer;
+  transition: filter .15s ease, background .15s ease;
+  margin-bottom: 0.75rem;
+}
+.dropzone:hover { filter: brightness(1.05); }
+.drop-hint { opacity: 0.85; }
+.drop-sub { font-size: 0.9rem; opacity: 0.75; }
+
+.dropzone.has-image {
+  padding: 0.5rem;
+}
+
+.preview-wrap {
+  position: relative;
+}
+.preview-wrap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.preview-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: .35rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+.pill.small { padding: 0.15rem 0.5rem; font-size: 0.85rem; }
+.pill.small.danger { background: #6f3a3a; border-color: #6f3a3a; }
+
+/* Card image */
+.card-image { margin-bottom: 0.5rem; }
+.card-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.card-image-name {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
+/* Disabled button hint */
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* clickable nests */
+.nest-card { cursor: pointer; transition: transform .04s ease, box-shadow .15s ease, border-color .15s ease; }
+.nest-card:hover { transform: translateY(-1px); box-shadow: inset 0 0 12px #222, 0 4px 10px rgba(0,0,0,.25); }
+.nest-card.active {
+  outline: 2px solid #bca275;
+  border: 1px solid #bca275;
+  background: #50523f;
+}
+
+/* filter bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: .25rem 0 1rem;
+}
+.pill.ghost {
+  background: transparent;
+  border-color: #4a4a3a;
+  color: #f4eada;
+}
+/* GoblinCard controls + editor */
+.card-controls {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+}
+
+.inline-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #2a2f22;
+  border: 1px solid #454535;
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+}
+.inline-select .label { opacity: 0.8; font-size: 0.85rem; }
+.inline-select select {
+  background: transparent;
+  color: #f4eada;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  padding: 0.05rem 0.2rem;
+  cursor: pointer;
+}
+
+.icon-button {
+  background: #2f3a2b;
+  color: #f4eada;
+  border: 1px solid #454535;
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.card-editor {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.card-editor textarea,
+.card-editor input[type="url"] {
+  width: 100%;
+  padding: 0.5rem;
+  background: #2a2f22;
+  color: #f4eada;
+  border: 1px solid #444;
+  border-radius: 5px;
+  font-family: inherit;
+  resize: vertical;
+}
+.editor-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.pill.save {
+  background: #6c845d;
+  border: 1px solid #6c845d;
+  color: #f4eada;
+}
+.pill.ghost {
+  background: transparent;
+  border: 1px solid #4a4a3a;
+  color: #f4eada;
+}

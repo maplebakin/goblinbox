@@ -1,0 +1,11 @@
+/* src/index.css */
+body {
+  margin: 0;
+  background: #2b3d2f;
+  font-family: 'Cormorant Garamond', serif;
+  color: #f4eada;
+  line-height: 1.5;
+}
+* { box-sizing: border-box; }
+button:hover { filter: brightness(1.1); }
+a { color: inherit; text-decoration: none; }
