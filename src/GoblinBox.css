@@ -162,6 +162,14 @@ header h1 {
   padding: 1rem;
   margin: 0;
 }
+.form-feedback {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  opacity: 0.9;
+}
+.form-feedback.error {
+  color: #f8c0c0;
+}
 .nest-add { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .nest-add input {
   background: #2a2f22; color: #f4eada; border: 1px solid #444;
@@ -209,6 +217,12 @@ header h1 {
 .nest-keyadd button {
   background: #6c845d; color: #f4eada; border: 0;
   border-radius: 4px; padding: 0.4rem 0.8rem; cursor: pointer;
+}
+.keyword-feedback {
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+  color: #f3c8c8;
+  opacity: 0.9;
 }
 
 /* Footer */

@@ -5,11 +5,18 @@ export default function NestManager({ nests, addNest, addKeyword, deleteNest }) 
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('✨');
   const [keywordInputs, setKeywordInputs] = useState({}); // per-nest temp
+  const [nestError, setNestError] = useState('');
+  const [keywordErrors, setKeywordErrors] = useState({});
 
   const submitNest = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    addNest(name.trim(), emoji || '✨');
+    const success = addNest(name.trim(), emoji || '✨');
+    if (!success) {
+      setNestError('That nest already exists. Try a different name.');
+      return;
+    }
+    setNestError('');
     setName('');
     setEmoji('✨');
   };
@@ -17,7 +24,12 @@ export default function NestManager({ nests, addNest, addKeyword, deleteNest }) 
   const submitKeyword = (idx) => {
     const kw = (keywordInputs[idx] || '').trim();
     if (!kw) return;
-    addKeyword(idx, kw);
+    const success = addKeyword(idx, kw);
+    if (!success) {
+      setKeywordErrors((s) => ({ ...s, [idx]: 'Keyword already in this nest.' }));
+      return;
+    }
+    setKeywordErrors((s) => ({ ...s, [idx]: '' }));
     setKeywordInputs((s) => ({ ...s, [idx]: '' }));
   };
 
@@ -27,7 +39,10 @@ export default function NestManager({ nests, addNest, addKeyword, deleteNest }) 
       <form className="nest-add" onSubmit={submitNest}>
         <input
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (nestError) setNestError('');
+          }}
           placeholder="New nest name (e.g., Witchy Snacks)"
         />
         <input
@@ -38,6 +53,7 @@ export default function NestManager({ nests, addNest, addKeyword, deleteNest }) 
         />
         <button type="submit">Add Nest</button>
       </form>
+      {nestError && <div className="form-feedback error">{nestError}</div>}
 
       <div className="nest-list">
         {nests.map((n, idx) => (
@@ -71,11 +87,18 @@ export default function NestManager({ nests, addNest, addKeyword, deleteNest }) 
             <div className="nest-keyadd">
               <input
                 value={keywordInputs[idx] || ''}
-                onChange={(e) => setKeywordInputs(s => ({ ...s, [idx]: e.target.value }))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setKeywordInputs(s => ({ ...s, [idx]: value }));
+                  if (keywordErrors[idx]) setKeywordErrors(s => ({ ...s, [idx]: '' }));
+                }}
                 placeholder="Add keyword to this nest…"
               />
               <button onClick={() => submitKeyword(idx)} type="button">Add</button>
             </div>
+            {keywordErrors[idx] && (
+              <div className="keyword-feedback">{keywordErrors[idx]}</div>
+            )}
           </div>
         ))}
       </div>
