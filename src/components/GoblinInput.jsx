@@ -1,14 +1,98 @@
 // src/components/GoblinInput.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-function detectVibe(text, link, nests = [], filename = '') {
-  const lower = (text + ' ' + link + ' ' + filename).toLowerCase();
-  for (const nest of nests) {
-    const all = [...(nest.baseKeywords || []), ...(nest.userKeywords || [])]
-      .map(k => String(k).toLowerCase());
-    if (all.some(kw => lower.includes(kw))) return nest.name;
+function tokenize(raw = '') {
+  return String(raw || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .split(/[^a-z0-9]+/u)
+    .filter(Boolean);
+}
+
+function scoreKeyword(keyword, haystackRaw, tokenSet) {
+  const normalized = String(keyword || '').toLowerCase().trim();
+  if (!normalized) return 0;
+
+  const tokens = tokenize(normalized);
+  if (!tokens.length) return 0;
+
+  if (tokens.length === 1) {
+    const token = tokens[0];
+    if (tokenSet.has(token)) return token.length >= 6 ? 10 : 8;
+    if (haystackRaw.includes(normalized)) return 4;
+    return 0;
   }
-  return 'Unsorted';
+
+  const hits = tokens.filter((token) => tokenSet.has(token));
+  if (hits.length === tokens.length) return 12;
+  if (hits.length > 0) return 6;
+  if (haystackRaw.includes(normalized)) return 8;
+  return 0;
+}
+
+function extractUrlTokens(rawUrl = '') {
+  if (!rawUrl) return [];
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./i, '');
+    const hostParts = host.split('.').filter(Boolean);
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const searchParts = [];
+    url.searchParams.forEach((value, key) => {
+      searchParts.push(key, value);
+    });
+    const hashParts = url.hash.replace(/^#/, '').split(/[^a-z0-9]+/i).filter(Boolean);
+    return [host, ...hostParts, ...pathParts, ...searchParts, ...hashParts];
+  } catch {
+    return tokenize(rawUrl);
+  }
+}
+
+function detectVibe(text, link, nests = [], filename = '') {
+  const textTokens = tokenize(text);
+  const imageTokens = tokenize(String(filename || '').replace(/\.[^.]+$/, ' '));
+  const urlTokens = extractUrlTokens(link).flatMap((part) => tokenize(part));
+  const allTokens = [...textTokens, ...imageTokens, ...urlTokens];
+  const haystackRaw = allTokens.join(' ');
+  const tokenSet = new Set(allTokens);
+  const emojiHaystack = `${text || ''} ${filename || ''} ${link || ''}`;
+
+  let bestNest = 'Unsorted';
+  let bestScore = 0;
+  let bestUserHits = 0;
+
+  for (const nest of nests) {
+    const baseKeywords = Array.isArray(nest.baseKeywords) ? nest.baseKeywords : [];
+    const userKeywords = Array.isArray(nest.userKeywords) ? nest.userKeywords : [];
+
+    let score = 0;
+    let userHitCount = 0;
+
+    for (const kw of baseKeywords) {
+      score += scoreKeyword(kw, haystackRaw, tokenSet);
+    }
+
+    for (const kw of userKeywords) {
+      const kwScore = scoreKeyword(kw, haystackRaw, tokenSet);
+      if (kwScore > 0) userHitCount += 1;
+      score += kwScore * 2; // user-curated keywords get extra weight
+    }
+
+    score += Math.floor(scoreKeyword(nest.name, haystackRaw, tokenSet) / 2);
+
+    if (nest.emoji && emojiHaystack.includes(nest.emoji)) {
+      score += 5;
+    }
+
+    if (score > bestScore || (score === bestScore && userHitCount > bestUserHits)) {
+      bestNest = nest.name;
+      bestScore = score;
+      bestUserHits = userHitCount;
+    }
+  }
+
+  return bestScore > 0 ? bestNest : 'Unsorted';
 }
 
 function looksLikeUrl(s = '') {
@@ -186,7 +270,7 @@ export default function GoblinInput({ onAdd, customNests = [] }) {
       {/* Vibe row */}
       <div className="vibe-row">
         <span className="auto-hint">
-          auto: <strong>{detectVibe(text, link, customNests, imageName)}</strong>
+          auto: <strong>{predictedMood}</strong>
         </span>
 
         <label className="mood-select">

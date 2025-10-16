@@ -1,10 +1,25 @@
 // src/App.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './GoblinBox.css';
 import GoblinInput from './components/GoblinInput.jsx';
 import GoblinCard from './components/GoblinCard.jsx';
 import NestManager from './components/NestManager.jsx';
 import { generateInitialKeywords } from './utils/keywordOracle.js';
+
+const DEFAULT_NEST_DEFS = [
+  { name: 'Witchy Things', emoji: '🌙' },
+  { name: 'Brain Rot', emoji: '🧠' },
+  { name: 'Snacks', emoji: '🥨' },
+];
+
+function createDefaultNests() {
+  return DEFAULT_NEST_DEFS.map(({ name, emoji }) => ({
+    name,
+    emoji,
+    baseKeywords: generateInitialKeywords(name),
+    userKeywords: [],
+  }));
+}
 
 export default function App() {
   const [hoard, setHoard] = useState([]);
@@ -15,25 +30,21 @@ export default function App() {
   // NEW: active filter
   const [selectedNest, setSelectedNest] = useState('All');
 
-  // Defaults (first run)
-  const defaultNests = [
-    { name: 'Witchy Things', emoji: '🌙', baseKeywords: generateInitialKeywords('Witchy Things'), userKeywords: [] },
-    { name: 'Brain Rot',     emoji: '🧠', baseKeywords: generateInitialKeywords('Brain Rot'),     userKeywords: [] },
-    { name: 'Snacks',        emoji: '🥨', baseKeywords: generateInitialKeywords('Snacks'),        userKeywords: [] },
-  ];
-
   // Load hoard + nests on mount
   useEffect(() => {
     try {
       const savedH = localStorage.getItem('goblinHoard');
       if (savedH) setHoard(JSON.parse(savedH));
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to load hoard from storage', err);
+    }
     try {
       const savedN = localStorage.getItem('goblinNests');
       if (savedN) setCustomNests(JSON.parse(savedN));
-      else setCustomNests(defaultNests);
-    } catch {
-      setCustomNests(defaultNests);
+      else setCustomNests(createDefaultNests());
+    } catch (err) {
+      console.warn('Failed to load nests from storage', err);
+      setCustomNests(createDefaultNests());
     }
     setHasLoaded(true);
   }, []);
@@ -50,9 +61,9 @@ export default function App() {
     localStorage.setItem('goblinNests', JSON.stringify(customNests));
   }, [customNests, hasLoaded]);
 
-const updateCard = (id, patch) => {
-  setHoard(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c)));
-};
+  const updateCard = useCallback((id, patch) => {
+    setHoard(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c)));
+  }, [setHoard]);
   // Close dropdown with Escape
   useEffect(() => {
     if (!showNestManager) return;
@@ -66,25 +77,48 @@ const updateCard = (id, patch) => {
 
   // Nest ops
   function addNest(name, emoji = '✨') {
+    const trimmedName = name.trim();
+    if (!trimmedName) return false;
+    const duplicate = customNests.some((n) => n.name.toLowerCase() === trimmedName.toLowerCase());
+    if (duplicate) return false;
+
+    const cleanedEmoji = (emoji || '✨').trim() || '✨';
     const newNest = {
-      name,
-      emoji,
-      baseKeywords: generateInitialKeywords(name),
+      name: trimmedName,
+      emoji: cleanedEmoji,
+      baseKeywords: generateInitialKeywords(trimmedName),
       userKeywords: [],
     };
     setCustomNests((prev) => [...prev, newNest]);
+    return true;
   }
   function addKeyword(nestIndex, kw) {
+    const trimmed = kw.trim();
+    if (!trimmed) return false;
+    const lower = trimmed.toLowerCase();
+    let added = false;
     setCustomNests((prev) =>
-      prev.map((n, i) =>
-        i === nestIndex ? { ...n, userKeywords: [...(n.userKeywords || []), kw] } : n
-      )
+      prev.map((n, i) => {
+        if (i !== nestIndex) return n;
+        const existing = new Set([
+          ...(n.baseKeywords || []),
+          ...(n.userKeywords || []),
+        ].map((k) => String(k).toLowerCase()));
+        if (existing.has(lower)) return n;
+        added = true;
+        return { ...n, userKeywords: [...(n.userKeywords || []), trimmed] };
+      })
     );
+    return added;
   }
   function deleteNest(index) {
+    const target = customNests[index];
+    if (!target) return;
     setCustomNests((prev) => prev.filter((_, i) => i !== index));
-    // If you delete the active one, fall back to All
-    setSelectedNest((curr) => (index >= 0 && curr === customNests[index]?.name ? 'All' : curr));
+    setHoard((prev) => prev.map((card) => (
+      card.mood === target.name ? { ...card, mood: 'Unsorted' } : card
+    )));
+    setSelectedNest((curr) => (curr === target.name ? 'All' : curr));
   }
 
   // Filtered hoard by selected nest
