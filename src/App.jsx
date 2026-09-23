@@ -5,6 +5,7 @@ import GoblinInput from './components/GoblinInput.jsx';
 import GoblinCard from './components/GoblinCard.jsx';
 import NestManager from './components/NestManager.jsx';
 import { generateInitialKeywords } from './utils/keywordOracle.js';
+import { loadHoard, saveHoard } from './utils/hoardStorage.js';
 
 export default function App() {
   const [hoard, setHoard] = useState([]);
@@ -24,10 +25,7 @@ export default function App() {
 
   // Load hoard + nests on mount
   useEffect(() => {
-    try {
-      const savedH = localStorage.getItem('goblinHoard');
-      if (savedH) setHoard(JSON.parse(savedH));
-    } catch {}
+    loadHoard().then(setHoard).catch((error) => console.error('Could not load hoard', error)).finally(() => setHasLoaded(true));
     try {
       const savedN = localStorage.getItem('goblinNests');
       if (savedN) setCustomNests(JSON.parse(savedN));
@@ -35,13 +33,12 @@ export default function App() {
     } catch {
       setCustomNests(defaultNests);
     }
-    setHasLoaded(true);
   }, []);
 
   // Save hoard changes
   useEffect(() => {
     if (!hasLoaded) return;
-    localStorage.setItem('goblinHoard', JSON.stringify(hoard));
+    saveHoard(hoard).catch((error) => console.error('Could not save hoard', error));
   }, [hoard, hasLoaded]);
 
   // Save nests changes
