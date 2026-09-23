@@ -25,7 +25,7 @@ async function withStore(mode, action) {
 
 const dataUrlToBlob = async (dataUrl) => (await fetch(dataUrl)).blob();
 
-export async function saveHoard(cards) {
+export async function saveHoardInner(cards) {
   const metadata = [];
   for (const card of cards) {
     const { image, ...fields } = card;
@@ -38,6 +38,20 @@ export async function saveHoard(cards) {
     metadata.push(fields);
   }
   localStorage.setItem('goblinHoard', JSON.stringify(metadata));
+}
+
+// Serialize saves: every saveHoard call waits for the previous one to finish
+// before it starts. Without this, rapid successive updates (e.g. adding
+// several large images in a row) interleave their async IndexedDB writes and
+// the *earlier*, smaller save can land its localStorage write last —
+// silently dropping cards. The queue guarantees the final write always
+// reflects the latest state.
+let saveQueue = Promise.resolve();
+
+export function saveHoard(cards) {
+  const run = saveQueue.then(() => saveHoardInner(cards));
+  saveQueue = run.catch(() => {});
+  return run;
 }
 
 export async function loadHoard() {
