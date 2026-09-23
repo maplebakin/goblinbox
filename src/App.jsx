@@ -15,11 +15,24 @@ const DEFAULT_NEST_DEFS = [
 
 function createDefaultNests() {
   return DEFAULT_NEST_DEFS.map(({ name, emoji }) => ({
+    id: `default-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
     name,
     emoji,
     baseKeywords: generateInitialKeywords(name),
     userKeywords: [],
   }));
+}
+
+function ensureNestIds(nests) {
+  return nests.map((nest) => nest.id ? nest : {
+    ...nest,
+    id: globalThis.crypto?.randomUUID?.() || `nest-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  });
+}
+
+function migrateCard(card) {
+  const { mood, ...metadata } = card;
+  return { ...metadata, nest: card.nest ?? mood ?? 'Unsorted' };
 }
 
 export default function App() {
@@ -38,10 +51,10 @@ export default function App() {
 
   // Load hoard + nests on mount
   useEffect(() => {
-    loadHoard().then(setHoard).catch((error) => console.error('Could not load hoard', error)).finally(() => setHasLoaded(true));
+    loadHoard().then((cards) => setHoard(cards.map(migrateCard))).catch((error) => console.error('Could not load hoard', error)).finally(() => setHasLoaded(true));
     try {
       const savedN = localStorage.getItem('goblinNests');
-      if (savedN) setCustomNests(JSON.parse(savedN));
+      if (savedN) setCustomNests(ensureNestIds(JSON.parse(savedN)));
       else setCustomNests(createDefaultNests());
     } catch (err) {
       console.warn('Failed to load nests from storage', err);
@@ -108,18 +121,20 @@ export default function App() {
     try {
       const backup = JSON.parse(await file.text());
       if (!Array.isArray(backup.cards) || !Array.isArray(backup.nests)) throw new Error('This file is not a GoblinBox backup.');
+      const importedCards = backup.cards.map(migrateCard);
+      const importedNests = ensureNestIds(backup.nests);
       if (importMode === 'replace' && !window.confirm('Replace your current hoard and nests with this backup?')) return;
       if (importMode === 'replace') {
-        setHoard(backup.cards);
-        setCustomNests(backup.nests);
+        setHoard(importedCards);
+        setCustomNests(importedNests);
       } else {
         setHoard((current) => {
           const knownIds = new Set(current.map((card) => String(card.id)));
-          return [...current, ...backup.cards.filter((card) => !knownIds.has(String(card.id)))];
+          return [...current, ...importedCards.filter((card) => !knownIds.has(String(card.id)))];
         });
         setCustomNests((current) => {
           const knownNames = new Set(current.map((nest) => nest.name.toLowerCase()));
-          return [...current, ...backup.nests.filter((nest) => !knownNames.has(nest.name.toLowerCase()))];
+          return [...current, ...importedNests.filter((nest) => !knownNames.has(nest.name.toLowerCase()))];
         });
       }
       setForageCards(null);
@@ -149,6 +164,7 @@ export default function App() {
 
     const cleanedEmoji = (emoji || '✨').trim() || '✨';
     const newNest = {
+      id: globalThis.crypto?.randomUUID?.() || `nest-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: trimmedName,
       emoji: cleanedEmoji,
       baseKeywords: generateInitialKeywords(trimmedName),
@@ -181,15 +197,16 @@ export default function App() {
     if (!target) return;
     setCustomNests((prev) => prev.filter((_, i) => i !== index));
     setHoard((prev) => prev.map((card) => (
-      card.mood === target.name ? { ...card, mood: 'Unsorted' } : card
+      (card.nest ?? card.mood) === target.name ? { ...card, nest: 'Unsorted' } : card
     )));
     setSelectedNest((curr) => (curr === target.name ? 'All' : curr));
   }
 
   // Filtered hoard by selected nest + live search
   const filteredHoard = useMemo(() => hoard.filter((card) => {
-    const matchesNest = selectedNest === 'All' || card.mood === selectedNest;
-    const nestName = customNests.find((nest) => nest.name === card.mood)?.name || card.mood || '';
+    const assignedNest = card.nest ?? card.mood;
+    const matchesNest = selectedNest === 'All' || assignedNest === selectedNest;
+    const nestName = customNests.find((nest) => nest.name === assignedNest)?.name || assignedNest || '';
     const searchable = [card.text, card.link, card.imageName, nestName].join(' ').toLowerCase();
     return matchesNest && searchable.includes(searchQuery.trim().toLowerCase());
   }), [hoard, selectedNest, searchQuery, customNests]);
@@ -284,12 +301,12 @@ export default function App() {
           <div style={{ opacity: 0.8, fontSize: '0.9rem' }}>{hoard.length} items</div>
         </div>
 
-        {customNests.map((n, i) => {
-          const count = hoard.filter((h) => h.mood === n.name).length;
+        {customNests.map((n) => {
+          const count = hoard.filter((h) => (h.nest ?? h.mood) === n.name).length;
           const active = selectedNest === n.name;
           return (
             <div
-              key={i}
+              key={n.id}
               className={`nest-card ${active ? 'active' : ''}`}
               role="button"
               tabIndex={0}

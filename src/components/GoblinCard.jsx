@@ -2,21 +2,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 export default function GoblinCard({ card, customNests = [], onUpdate }) {
-  const { id, text, link, mood, timestamp, image, imageName } = card;
+  const { id, text, link, timestamp, image, imageName } = card;
+  const nest = card.nest ?? card.mood ?? 'Unsorted';
 
   const [editing, setEditing] = useState(false);
   const [localText, setLocalText] = useState(text || '');
   const [localLink, setLocalLink] = useState(link || '');
-  const [localMood, setLocalMood] = useState(mood || 'Unsorted');
+  const [localNest, setLocalNest] = useState(nest);
 
   // keep local state in sync if card changes externally
   useEffect(() => {
     setLocalText(text || '');
     setLocalLink(link || '');
-    setLocalMood(mood || 'Unsorted');
-  }, [id, text, link, mood]);
+    setLocalNest(nest);
+  }, [id, text, link, nest]);
 
-  const moodOptions = useMemo(
+  const nestOptions = useMemo(
     () => ['Unsorted', ...customNests.map(n => n.name)],
     [customNests]
   );
@@ -26,38 +27,38 @@ export default function GoblinCard({ card, customNests = [], onUpdate }) {
     timeStyle: 'short',
   });
 
-  const handleAssign = (newMood) => {
-    setLocalMood(newMood);
-    onUpdate?.(id, { mood: newMood }); // immediate move
+  const handleAssign = (newNest) => {
+    setLocalNest(newNest);
+    onUpdate?.(id, { nest: newNest }); // immediate move
   };
 
   const handleSave = () => {
-    onUpdate?.(id, { text: localText.trim(), link: localLink.trim(), mood: localMood });
+    onUpdate?.(id, { text: localText.trim(), link: localLink.trim(), nest: localNest });
     setEditing(false);
   };
 
   const handleCancel = () => {
     setLocalText(text || '');
     setLocalLink(link || '');
-    setLocalMood(mood || 'Unsorted');
+    setLocalNest(nest);
     setEditing(false);
   };
 
   return (
     <div className="goblin-card">
       <div className="card-top">
-        <span className="mood-badge">{localMood}</span>
+        <span className="mood-badge">{localNest}</span>
         <span className="card-date">{formattedDate}</span>
 
         <div className="card-controls">
           <label className="inline-select" title="Assign to a nest">
             <span className="label">Assign</span>
             <select
-              value={localMood}
+              value={localNest}
               onChange={(e) => handleAssign(e.target.value)}
             >
-              {moodOptions.map((m) => (
-                <option key={m} value={m}>{m}</option>
+              {nestOptions.map((n) => (
+                <option key={n} value={n}>{n}</option>
               ))}
             </select>
           </label>

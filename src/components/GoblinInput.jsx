@@ -107,21 +107,21 @@ export default function GoblinInput({ onAdd, customNests = [] }) {
 
   const fileInputRef = useRef(null);
 
-  const predictedMood = useMemo(
+  const predictedNest = useMemo(
     () => detectVibe(text, link, customNests, imageName),
     [text, link, customNests, imageName]
   );
-  const [selectedMood, setSelectedMood] = useState('Unsorted');
+  const [selectedNest, setSelectedNest] = useState('Unsorted');
   const [userOverrode, setUserOverrode] = useState(false);
 
   useEffect(() => {
-    if (!userOverrode) setSelectedMood(predictedMood);
-  }, [predictedMood, userOverrode]);
+    if (!userOverrode) setSelectedNest(predictedNest);
+  }, [predictedNest, userOverrode]);
 
   useEffect(() => {
     if (!text && !link && !imageData) {
       setUserOverrode(false);
-      setSelectedMood('Unsorted');
+      setSelectedNest('Unsorted');
     }
   }, [text, link, imageData]);
 
@@ -190,7 +190,7 @@ export default function GoblinInput({ onAdd, customNests = [] }) {
     setImageName('');
   }
 
-  const moodOptions = ['Unsorted', ...customNests.map(n => n.name)];
+  const nestOptions = ['Unsorted', ...customNests.map(n => n.name)];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -202,7 +202,7 @@ export default function GoblinInput({ onAdd, customNests = [] }) {
       link: link.trim(),
       image: imageData || undefined,
       imageName: imageName || undefined,
-      mood: selectedMood || predictedMood || 'Unsorted',
+      nest: selectedNest || predictedNest || 'Unsorted',
       timestamp: new Date().toISOString(),
     };
 
@@ -211,7 +211,7 @@ export default function GoblinInput({ onAdd, customNests = [] }) {
     setLink('');
     clearImage();
     setUserOverrode(false);
-    setSelectedMood('Unsorted');
+    setSelectedNest('Unsorted');
   };
 
   return (
@@ -270,16 +270,16 @@ export default function GoblinInput({ onAdd, customNests = [] }) {
       {/* Vibe row */}
       <div className="vibe-row">
         <span className="auto-hint">
-          auto: <strong>{predictedMood}</strong>
+          auto: <strong>{predictedNest}</strong>
         </span>
 
         <label className="mood-select">
           <span className="label">Nest</span>
           <select
-            value={selectedMood}
-            onChange={(e) => { setSelectedMood(e.target.value); setUserOverrode(true); }}
+            value={selectedNest}
+            onChange={(e) => { setSelectedNest(e.target.value); setUserOverrode(true); }}
           >
-            {moodOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+            {nestOptions.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>
 
