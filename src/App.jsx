@@ -29,7 +29,9 @@ export default function App() {
   const [showNestManager, setShowNestManager] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [forageCards, setForageCards] = useState(null);
+  const [importMode, setImportMode] = useState('merge');
   const inputRef = useRef(null);
+  const importInputRef = useRef(null);
 
   // NEW: active filter
   const [selectedNest, setSelectedNest] = useState('All');
@@ -72,6 +74,61 @@ export default function App() {
 
   // Hoard ops
   const addToHoard = (card) => setHoard((prev) => [card, ...prev]);
+
+  async function imageAsDataUrl(image) {
+    if (!image) return undefined;
+    if (typeof image === 'string' && image.startsWith('data:')) return image;
+    const blob = image instanceof Blob ? image : await fetch(image).then((response) => response.blob());
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function exportBackup() {
+    const cards = await Promise.all(hoard.map(async (card) => ({
+      ...card,
+      image: await imageAsDataUrl(card.image),
+    })));
+    const backup = { format: 'goblinbox-backup', version: 1, exportedAt: new Date().toISOString(), nests: customNests, cards };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `goblinbox-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importBackup(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const backup = JSON.parse(await file.text());
+      if (!Array.isArray(backup.cards) || !Array.isArray(backup.nests)) throw new Error('This file is not a GoblinBox backup.');
+      if (importMode === 'replace' && !window.confirm('Replace your current hoard and nests with this backup?')) return;
+      if (importMode === 'replace') {
+        setHoard(backup.cards);
+        setCustomNests(backup.nests);
+      } else {
+        setHoard((current) => {
+          const knownIds = new Set(current.map((card) => String(card.id)));
+          return [...current, ...backup.cards.filter((card) => !knownIds.has(String(card.id)))];
+        });
+        setCustomNests((current) => {
+          const knownNames = new Set(current.map((nest) => nest.name.toLowerCase()));
+          return [...current, ...backup.nests.filter((nest) => !knownNames.has(nest.name.toLowerCase()))];
+        });
+      }
+      setForageCards(null);
+      setSelectedNest('All');
+      setSearchQuery('');
+    } catch (error) {
+      window.alert(`Could not import backup: ${error.message}`);
+    }
+  }
 
   function startForage() {
     const chosen = [...hoard]
@@ -167,6 +224,16 @@ export default function App() {
 
         <div className="topbar">
           <button className="pill" onClick={startForage}>🔎 Forage</button>
+          <button className="pill" onClick={exportBackup}>⬇ Export</button>
+          <label className="backup-import">
+            <span className="sr-only">Import backup file</span>
+            <select aria-label="Import behavior" value={importMode} onChange={(event) => setImportMode(event.target.value)}>
+              <option value="merge">Merge</option>
+              <option value="replace">Replace</option>
+            </select>
+            <button className="pill" type="button" onClick={() => importInputRef.current?.click()}>⬆ Import</button>
+          </label>
+          <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={importBackup} />
           <button
             className="pill"
             onClick={() => setShowNestManager((s) => !s)}
