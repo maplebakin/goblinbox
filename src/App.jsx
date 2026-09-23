@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './GoblinBox.css';
 import GoblinInput from './components/GoblinInput.jsx';
 import GoblinCard from './components/GoblinCard.jsx';
@@ -29,6 +29,7 @@ export default function App() {
   const [showNestManager, setShowNestManager] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [forageCards, setForageCards] = useState(null);
+  const inputRef = useRef(null);
 
   // NEW: active filter
   const [selectedNest, setSelectedNest] = useState('All');
@@ -158,7 +159,10 @@ export default function App() {
       <header>
         <h1>🟢 GOBLINBOX</h1>
         <p className="subtitle">A delightfully messy place to hoard your strange digital treasures.</p>
-        <button className="cta">Click. Hoard. Repeat.</button>
+        <button className="cta" onClick={() => {
+          inputRef.current?.scrollIntoView({ behavior: 'smooth' });
+          inputRef.current?.querySelector('textarea')?.focus({ preventScroll: true });
+        }}>Click. Hoard. Repeat.</button>
         <p className="question">What will you save?</p>
 
         <div className="topbar">
@@ -188,7 +192,9 @@ export default function App() {
         </>
       )}
 
-      <GoblinInput onAdd={addToHoard} customNests={customNests} />
+      <div ref={inputRef}>
+        <GoblinInput onAdd={addToHoard} customNests={customNests} />
+      </div>
 
       <section className="hoard-status">
         <h2>Your Hoard</h2>
