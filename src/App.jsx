@@ -13,6 +13,7 @@ export default function App() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [showNestManager, setShowNestManager] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [forageCards, setForageCards] = useState(null);
 
   // NEW: active filter
   const [selectedNest, setSelectedNest] = useState('All');
@@ -61,6 +62,20 @@ const updateCard = (id, patch) => {
 
   // Hoard ops
   const addToHoard = (card) => setHoard((prev) => [card, ...prev]);
+
+  function startForage() {
+    const chosen = [...hoard]
+      .sort((a, b) => new Date(a.lastViewed || a.timestamp) - new Date(b.lastViewed || b.timestamp))
+      .slice(0, 5);
+    const viewedAt = new Date().toISOString();
+    const chosenIds = new Set(chosen.map((card) => card.id));
+    setHoard((prev) => prev.map((card) => chosenIds.has(card.id) ? { ...card, lastViewed: viewedAt } : card));
+    setForageCards(chosen.map((card) => ({ ...card, lastViewed: viewedAt })));
+  }
+  const forageIdSet = forageCards && new Set(forageCards.map((card) => card.id));
+  const visibleCards = forageCards
+    ? hoard.filter((card) => forageIdSet.has(card.id))
+    : filteredHoard;
 
   // Nest ops
   function addNest(name, emoji = '✨') {
@@ -113,6 +128,7 @@ const updateCard = (id, patch) => {
         <p className="question">What will you save?</p>
 
         <div className="topbar">
+          <button className="pill" onClick={startForage}>🔎 Forage</button>
           <button
             className="pill"
             onClick={() => setShowNestManager((s) => !s)}
@@ -186,7 +202,8 @@ const updateCard = (id, patch) => {
 
       {/* Filter bar */}
       <section className="filter-bar">
-        <span className="chip">{selectedNest === 'All' ? 'Showing: All' : `Showing: ${selectedNest}`}</span>
+        {forageCards ? <span className="chip">Forage: five forgotten shinies</span> : <span className="chip">{selectedNest === 'All' ? 'Showing: All' : `Showing: ${selectedNest}`}</span>}
+        {forageCards && <button className="pill ghost" onClick={() => setForageCards(null)}>Back to hoard</button>}
         <label className="hoard-search">
           <span className="sr-only">Search your hoard</span>
           <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search your hoard…" />
@@ -198,16 +215,18 @@ const updateCard = (id, patch) => {
 
       {/* Hoard list (filtered) */}
       <section className="hoard-list">
-  {filteredHoard.length === 0 ? (
-    <div style={{ opacity: 0.8, fontStyle: 'italic' }}>No items here yet.</div>
+  {visibleCards.length === 0 ? (
+    <div style={{ opacity: 0.8, fontStyle: 'italic' }}>{forageCards ? 'Your hoard is empty. Save a shiny and come forage later.' : 'No items here yet.'}</div>
   ) : (
-    filteredHoard.map((card) => (
+    visibleCards.map((card) => (
+      <React.Fragment key={card.id}>
+      {forageCards && new Date(card.timestamp).getMonth() === new Date().getMonth() && new Date(card.timestamp).getDate() === new Date().getDate() && <p className="chip anniversary">✨ From this day in hoard history</p>}
       <GoblinCard
-        key={card.id}
         card={card}
         customNests={customNests}
         onUpdate={updateCard}
       />
+      </React.Fragment>
     ))
   )}
 </section>
