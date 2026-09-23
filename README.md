@@ -1,12 +1,30 @@
-# React + Vite
+# GoblinBox
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+GoblinBox is a cozy React + Vite playground for stashing the delightfully weird things you find online. Drop in screenshots, links, or little notes and the app will suggest which "nest" (collection) they should live in based on the keywords you curate.
 
-Currently, two official plugins are available:
+## Highlights
+- **Smarter auto-sorting** – The Goblin Oracle now weighs base keywords, your custom keywords, image names, and even URL fragments to pick the most relevant nest automatically.
+- **Friendly nest management** – Duplicate nest names and keywords are prevented with inline feedback, so every collection stays unique.
+- **Drag, drop, paste** – Images, URLs, and text can all be tossed into the hoard; cards can be edited or re-assigned after the fact.
+- **Local persistence** – Your hoard and nests live in `localStorage`, so shinies are still there on refresh.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Getting started
+```bash
+npm install
+npm run dev
+```
+Then visit the printed URL (typically <http://localhost:5173>) to open the GoblinBox UI.
 
-## Expanding the ESLint configuration
+## Scripts
+- `npm run dev` – start the Vite dev server with HMR.
+- `npm run build` – produce a production build.
+- `npm run preview` – serve the production build locally.
+- `npm run lint` – run ESLint across the project.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Project structure
+- `src/App.jsx` – top-level orchestration: hoard state, filters, and nest management.
+- `src/components/` – UI components such as `GoblinInput`, `GoblinCard`, and `NestManager`.
+- `src/utils/keywordOracle.js` – heuristics for seeding new nests with starter keywords.
+- `src/GoblinBox.css` – primary styling for the application.
+
+Have fun hoarding!
