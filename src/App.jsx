@@ -12,6 +12,7 @@ export default function App() {
   const [customNests, setCustomNests] = useState([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [showNestManager, setShowNestManager] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // NEW: active filter
   const [selectedNest, setSelectedNest] = useState('All');
@@ -85,10 +86,12 @@ const updateCard = (id, patch) => {
   }
 
   // Filtered hoard by selected nest
-  const filteredHoard = useMemo(() => {
-    if (selectedNest === 'All') return hoard;
-    return hoard.filter((c) => c.mood === selectedNest);
-  }, [hoard, selectedNest]);
+  const filteredHoard = useMemo(() => hoard.filter((card) => {
+    const matchesNest = selectedNest === 'All' || card.mood === selectedNest;
+    const nestName = customNests.find((nest) => nest.name === card.mood)?.name || card.mood || '';
+    const searchable = [card.text, card.link, card.imageName, nestName].join(' ').toLowerCase();
+    return matchesNest && searchable.includes(searchQuery.trim().toLowerCase());
+  }), [hoard, selectedNest, searchQuery, customNests]);
 
   // Helpers for clicking/toggling a nest
   function selectNest(name) {
@@ -184,6 +187,10 @@ const updateCard = (id, patch) => {
       {/* Filter bar */}
       <section className="filter-bar">
         <span className="chip">{selectedNest === 'All' ? 'Showing: All' : `Showing: ${selectedNest}`}</span>
+        <label className="hoard-search">
+          <span className="sr-only">Search your hoard</span>
+          <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search your hoard…" />
+        </label>
         {selectedNest !== 'All' && (
           <button className="pill ghost" onClick={() => setSelectedNest('All')}>Clear filter</button>
         )}
